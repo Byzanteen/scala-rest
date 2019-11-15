@@ -16,7 +16,7 @@ object Registry {
   // actor protocol
   sealed trait Command
   final case class GetStocks(replyTo: ActorRef[Stocks]) extends Command
-  final case class CreateStock(stock: Stocks, replyTo: ActorRef[ActionPerformed]) extends Command
+  final case class CreateStock(stock: Stock, replyTo: ActorRef[ActionPerformed]) extends Command
   final case class GetStock(article_id: Int, replyTo: ActorRef[GetResponse]) extends Command
   final case class DeleteStock(article_id: Int, replyTo: ActorRef[ActionPerformed]) extends Command
 
@@ -28,12 +28,12 @@ object Registry {
   private def registry(stocks: Set[Stock]): Behavior[Command] =
     Behaviors.receiveMessage {
       case GetStocks(replyTo) =>
-        replyTo ! Stocks(users.toSeq)
+        replyTo ! Stocks(stocks.toSeq)
         Behaviors.same
       case CreateStock(stock, replyTo) =>
         replyTo ! ActionPerformed(s"Stock ${stock.product_name} created.")
         registry(stocks + stock)
-      case GetStock(country, location_id, replyTo) =>
+      case GetStock(article_id, replyTo) =>
         replyTo ! GetResponse(stocks.find(_.article_id == article_id))
         Behaviors.same
       case DeleteStock(article_id, replyTo) =>

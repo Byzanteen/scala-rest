@@ -13,7 +13,7 @@ import akka.util.Timeout
 
 //#import-json-formats
 //#routes-class
-class Routes(Registry: ActorRef[Registry.Command])(implicit val system: ActorSystem[_]) {
+class Routes(registry: ActorRef[Registry.Command])(implicit val system: ActorSystem[_]) {
 
   //#routes-class
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -23,14 +23,14 @@ class Routes(Registry: ActorRef[Registry.Command])(implicit val system: ActorSys
   // If ask takes more time than this to complete the request is failed
   private implicit val timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
 
-  def getStocks(): Future[Users] =
-    Registry.ask(GetStocks)
-  def getStock(article_id): Future[GetResponse] =
-    Registry.ask(GetStocks(article_id, _))
+  def getStocks(): Future[Stocks] =
+    registry.ask(GetStocks)
+  def getStock(article_id: Int): Future[GetResponse] =
+    registry.ask(GetStock(article_id, _))
   def createStock(stock: Stock): Future[ActionPerformed] =
-    Registry.ask(CreateStock(stock, _))
+    registry.ask(CreateStock(stock, _))
   def deleteStock(article_id: Int): Future[ActionPerformed] =
-    Registry.ask(DeleteStock(article_id, _))
+    registry.ask(DeleteStock(article_id, _))
 
   //#all-routes
   //#get-post
@@ -58,7 +58,7 @@ class Routes(Registry: ActorRef[Registry.Command])(implicit val system: ActorSys
             get {
               //#retrieve-user-info
               rejectEmptyResponse {
-                onSuccess(getStock(article_id)) { response =>
+                onSuccess(getStock(article_id.toInt)) { response =>
                   complete(response.maybe)
                 }
               }
@@ -66,7 +66,7 @@ class Routes(Registry: ActorRef[Registry.Command])(implicit val system: ActorSys
             },
             delete {
               //#delete-logic
-              onSuccess(deleteStock(article_id)) { performed =>
+              onSuccess(deleteStock(article_id.toInt)) { performed =>
                 complete((StatusCodes.OK, performed))
               }
               //#delete-logic
