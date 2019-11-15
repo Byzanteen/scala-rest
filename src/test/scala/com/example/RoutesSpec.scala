@@ -11,7 +11,7 @@ import org.scalatest.{ Matchers, WordSpec }
 import akka.actor.typed.scaladsl.adapter._
 
 //#set-up
-class UserRoutesSpec extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
+class RoutesSpec extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
   //#test-top
 
   // the Akka HTTP route testkit does not yet support a typed actor system (https://github.com/akka/akka-http/issues/2036)
@@ -21,12 +21,12 @@ class UserRoutesSpec extends WordSpec with Matchers with ScalaFutures with Scala
   override def createActorSystem(): akka.actor.ActorSystem =
     testKit.system.toClassic
 
-  // Here we need to implement all the abstract members of UserRoutes.
-  // We use the real UserRegistryActor to test it while we hit the Routes,
+  // Here we need to implement all the abstract members of Routes.
+  // We use the real RegistryActor to test it while we hit the Routes,
   // but we could "mock" it by implementing it in-place or by using a TestProbe
   // created with testKit.createTestProbe()
-  val userRegistry = testKit.spawn(UserRegistry())
-  lazy val routes = new UserRoutes(userRegistry).userRoutes
+  val Registry = testKit.spawn(Registry())
+  lazy val routes = new Routes(Registry).Routes
 
   // use the json formats to marshal and unmarshall objects in the test
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -34,7 +34,7 @@ class UserRoutesSpec extends WordSpec with Matchers with ScalaFutures with Scala
   //#set-up
 
   //#actual-test
-  "UserRoutes" should {
+  "Routes" should {
     "return no users if no present (GET /users)" in {
       // note that there's no need for the host part in the uri:
       val request = HttpRequest(uri = "/users")
