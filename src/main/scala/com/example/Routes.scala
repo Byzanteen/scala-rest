@@ -36,7 +36,7 @@ class Routes(registry: ActorRef[Registry.Command])(implicit val system: ActorSys
   //#all-routes
   //#get-post
   //#get-delete
-  val Routes: Route =
+  val routes: Route =
     pathPrefix("stocks") {
       concat(
         //#get-delete
