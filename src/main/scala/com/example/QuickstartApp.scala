@@ -35,6 +35,12 @@ object QuickstartApp {
       context.watch(RegistryActor)
 
       val routes = new Routes(RegistryActor)(context.system)
+
+      
+      val uri = CassandraConnectionUri("cassandra://localhost:9042/dev")
+      val session = Helper.createSessionAndInitKeyspace(uri)
+      session.execute("CREATE TABLE IF NOT EXISTS stocks (country text, location_id int, article_id int, category text, product_name text, stock int, subcategory text, PRIMARY KEY (article_id));")
+      
       startHttpServer(routes.routes, context.system)
 
       Behaviors.empty
