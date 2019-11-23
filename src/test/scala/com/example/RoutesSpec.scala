@@ -1,7 +1,5 @@
 package com.example
 
-//#user-routes-spec
-//#test-top
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
@@ -10,54 +8,27 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpec }
 import akka.actor.typed.scaladsl.adapter._
 
-//#set-up
 class RoutesSpec extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
-  //#test-top
 
-  // the Akka HTTP route testkit does not yet support a typed actor system (https://github.com/akka/akka-http/issues/2036)
-  // so we have to adapt for now
   lazy val testKit = ActorTestKit()
   implicit def typedSystem = testKit.system
   override def createActorSystem(): akka.actor.ActorSystem =
     testKit.system.toClassic
 
-  // Here we need to implement all the abstract members of Routes.
-  // We use the real RegistryActor to test it while we hit the Routes,
-  // but we could "mock" it by implementing it in-place or by using a TestProbe
-  // created with testKit.createTestProbe()
-  val Registry = testKit.spawn(Registry())
-  lazy val routes = new Routes(Registry).Routes
+  val registry = testKit.spawn(Registry())
+  lazy val routes = new Routes(registry).routes
 
   // use the json formats to marshal and unmarshall objects in the test
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import JsonFormats._
-  //#set-up
 
-  //#actual-test
   "Routes" should {
-    "return no users if no present (GET /users)" in {
-      // note that there's no need for the host part in the uri:
-      val request = HttpRequest(uri = "/users")
 
-      request ~> routes ~> check {
-        status should ===(StatusCodes.OK)
-
-        // we expect the response to be json:
-        contentType should ===(ContentTypes.`application/json`)
-
-        // and no entries should be in the list:
-        entityAs[String] should ===("""{"users":[]}""")
-      }
-    }
-    //#actual-test
-
-    //#testing-post
     "be able to add users (POST /users)" in {
-      val user = User("Kapi", 42, "jp")
-      val userEntity = Marshal(user).to[MessageEntity].futureValue // futureValue is from ScalaFutures
+      val stock = Stock("RO", 2, 3, "electronics", "TV 4k", 22, "TV")
+      val stockEntity = Marshal(stock).to[MessageEntity].futureValue // futureValue is from ScalaFutures
 
-      // using the RequestBuilding DSL:
-      val request = Post("/users").withEntity(userEntity)
+      val request = Post("/stocks").withEntity(stockEntity)
 
       request ~> routes ~> check {
         status should ===(StatusCodes.Created)
@@ -66,14 +37,14 @@ class RoutesSpec extends WordSpec with Matchers with ScalaFutures with Scalatest
         contentType should ===(ContentTypes.`application/json`)
 
         // and we know what message we're expecting back:
-        entityAs[String] should ===("""{"description":"User Kapi created."}""")
+        entityAs[String] should ===("""{"description":"Stock TV 4k created."}""")
       }
-    }
-    //#testing-post
 
-    "be able to remove users (DELETE /users)" in {
-      // user the RequestBuilding DSL provided by ScalatestRouteSpec:
-      val request = Delete(uri = "/users/Kapi")
+    }
+
+    "return no stocks (GET /stocks)" in {
+      // note that there's no need for the host part in the uri:
+      val request = HttpRequest(uri = "/stocks?country=\"Ro\"&location_id=2")
 
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)
@@ -82,7 +53,22 @@ class RoutesSpec extends WordSpec with Matchers with ScalaFutures with Scalatest
         contentType should ===(ContentTypes.`application/json`)
 
         // and no entries should be in the list:
-        entityAs[String] should ===("""{"description":"User Kapi deleted."}""")
+        entityAs[String] should ===("""{"Stocks":[]}""")
+      }
+    }
+
+    "be able to remove users (DELETE /users)" in {
+      // user the RequestBuilding DSL provided by ScalatestRouteSpec:
+      val request = Delete(uri = "/stocks/3")
+
+      request ~> routes ~> check {
+        status should ===(StatusCodes.OK)
+
+        // we expect the response to be json:
+        contentType should ===(ContentTypes.`application/json`)
+
+        // and no entries should be in the list:
+        entityAs[String] should ===("""{"description":"Stock 3 deleted."}""")
       }
     }
     //#actual-test
