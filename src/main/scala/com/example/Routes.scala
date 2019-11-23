@@ -51,8 +51,8 @@ class Routes(registry: ActorRef[Registry.Command])(implicit val system: ActorSys
             })
         },
         get {
-          extract(_.request.uri.query())  { (country: String, location_id: Int) =>
-            complete(GetStocks(country,location_id, _))
+          parameters('country.as[String], 'location_id.as[Int])  { (country: String, location_id: Int) =>
+            complete(getStocks(country,location_id))
           }
         },
         //#get-delete
