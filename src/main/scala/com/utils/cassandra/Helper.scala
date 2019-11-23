@@ -13,6 +13,10 @@ object Helper {
 
     val session = cluster.connect
     session.execute(s"USE ${uri.keyspace}")
+
+    Pillar.initialize(session, uri.keyspace, 1)
+    Pillar.migrate(session)
+
     session
   }
 

@@ -15,6 +15,7 @@ lazy val root = (project in file(".")).
       "com.typesafe.akka" %% "akka-stream"                % akkaVersion,
       "ch.qos.logback"    % "logback-classic"             % "1.2.3",
       "com.datastax.cassandra" % "cassandra-driver-core"  % "3.5.1",
+      "com.chrisomeara" % "pillar_2.10"                   % "2.3.0",
 
       "com.typesafe.akka" %% "akka-http-testkit"        % akkaHttpVersion % Test,
       "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion     % Test,

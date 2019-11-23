@@ -7,23 +7,25 @@ import org.scalatest.{Matchers, FunSpec}
 class ConnectionAndQuerySpec extends FunSpec with Matchers {
   
   describe("Connecting and querying a Cassandra database") {
+  
     it("should just work") {
       val uri = CassandraConnectionUri("cassandra://localhost:9042/dev")
       val session = Helper.createSessionAndInitKeyspace(uri)
       
-      session.execute("CREATE TABLE IF NOT EXISTS things (id int, name text, PRIMARY KEY (id))")
-      session.execute("INSERT INTO things (id, name) VALUES (1, 'foo');")
+      session.execute("INSERT INTO stocks (country, location_id, article_id, category, product_name, stock, subcategory) VALUES ('RO', 1, 1, 'drinks', 'Cola', 200, 'soda');")  
 
-      val selectStmt = select().column("name")
-        .from("things")
-        .where(QueryBuilder.eq("id", 1))
+      val selectStmt = select().column("")
+        .from("stocks")
+        .where(QueryBuilder.eq("article_id", 1))
         .limit(1)
       
       val resultSet = session.execute(selectStmt)
       val row = resultSet.one()
-      row.getString("name") should be("foo")
-      session.execute("DROP TABLE things;")
+
+      row.getString("product_name") should be("Cola")
+      session.execute("TRUNCATE things;")
     }
+  
   }
 
 }
