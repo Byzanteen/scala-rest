@@ -1,4 +1,4 @@
-package common.utils.cassandra
+package com.example
 
 import java.net.URI
 

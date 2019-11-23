@@ -1,4 +1,4 @@
-package common.utils.cassandra
+package com.example
 
 import com.datastax.driver.core._
 
@@ -16,9 +16,12 @@ object Helper {
     session
   }
 
-  def createStock(stock: Stock, session) = {
-    val query = s""
-
+  def createStock(stock: Stock, session: com.datastax.driver.core.Session) = {
+    val stockFormat = s"'${stock.country}', ${stock.location_id}, ${stock.article_id}, '${stock.category}', '${stock.product_name}', ${stock.stock}, '${stock.subcategory}'"
+    
+    val query = s"INSERT INTO stocks (country, location_id, article_id, category, product_name, stock, subcategory) VALUES (${stockFormat});"  
+    session.execute(query);
+    session
   }
 
 }

@@ -5,6 +5,8 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import scala.collection.immutable
+import com.datastax.driver.core.querybuilder.QueryBuilder
+import com.datastax.driver.core.querybuilder.QueryBuilder._
 
 //#user-case-classes
 final case class Stock(country: String, location_id: Int, article_id: Int, category: String, 
@@ -25,6 +27,9 @@ object Registry {
 
   def apply(): Behavior[Command] = registry(Set.empty)
 
+  val uri = CassandraConnectionUri("cassandra://localhost:9042/dev")
+  val session = Helper.createSessionAndInitKeyspace(this.uri)
+
   private def registry(stocks: Set[Stock]): Behavior[Command] =
     Behaviors.receiveMessage {
       case GetStocks(country, location_id, replyTo) =>
@@ -32,6 +37,7 @@ object Registry {
         Behaviors.same
       case CreateStock(stock, replyTo) =>
         replyTo ! ActionPerformed(s"Stock ${stock.product_name} created.")
+        Helper.createStock(stock,this.session)
         registry(stocks + stock)
       case GetStock(article_id, replyTo) =>
         replyTo ! GetResponse(stocks.find(_.article_id == article_id))

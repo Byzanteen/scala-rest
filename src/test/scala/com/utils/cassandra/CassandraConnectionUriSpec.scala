@@ -1,4 +1,4 @@
-package common.utils.cassandra
+package com.example
 
 import org.scalatest.{Matchers, FunSpec}
 

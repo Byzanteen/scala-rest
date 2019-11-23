@@ -1,4 +1,4 @@
-package common.utils.cassandra
+package com.example
 
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.datastax.driver.core.querybuilder.QueryBuilder._
