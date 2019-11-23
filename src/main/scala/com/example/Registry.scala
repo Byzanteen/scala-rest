@@ -15,7 +15,7 @@ final case class Stocks(Stocks: immutable.Seq[Stock])
 object Registry {
   // actor protocol
   sealed trait Command
-  final case class GetStocks(replyTo: ActorRef[Stocks]) extends Command
+  final case class GetStocks(country: String, location_id: Int, replyTo: ActorRef[Stocks]) extends Command
   final case class CreateStock(stock: Stock, replyTo: ActorRef[ActionPerformed]) extends Command
   final case class GetStock(article_id: Int, replyTo: ActorRef[GetResponse]) extends Command
   final case class DeleteStock(article_id: Int, replyTo: ActorRef[ActionPerformed]) extends Command
@@ -27,8 +27,8 @@ object Registry {
 
   private def registry(stocks: Set[Stock]): Behavior[Command] =
     Behaviors.receiveMessage {
-      case GetStocks(replyTo) =>
-        replyTo ! Stocks(stocks.toSeq)
+      case GetStocks(country, location_id, replyTo) =>
+        replyTo ! Stocks(stocks.filter(_stock => (_stock.country == country && _stock.location_id == location_id)).toSeq)
         Behaviors.same
       case CreateStock(stock, replyTo) =>
         replyTo ! ActionPerformed(s"Stock ${stock.product_name} created.")

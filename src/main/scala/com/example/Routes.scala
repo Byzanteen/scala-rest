@@ -9,6 +9,7 @@ import com.example.Registry._
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.util.Timeout
 
 //#import-json-formats
@@ -23,8 +24,8 @@ class Routes(registry: ActorRef[Registry.Command])(implicit val system: ActorSys
   // If ask takes more time than this to complete the request is failed
   private implicit val timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
 
-  def getStocks(): Future[Stocks] =
-    registry.ask(GetStocks)
+  def getStocks(country: String, location_id: Int): Future[Stocks] =
+    registry.ask(GetStocks(country, location_id, _))
   def getStock(article_id: Int): Future[GetResponse] =
     registry.ask(GetStock(article_id, _))
   def createStock(stock: Stock): Future[ActionPerformed] =
@@ -35,15 +36,12 @@ class Routes(registry: ActorRef[Registry.Command])(implicit val system: ActorSys
   //#all-routes
   //#get-post
   //#get-delete
-  val Routes: Route =
+  val routes: Route =
     pathPrefix("stocks") {
       concat(
         //#get-delete
         pathEnd {
           concat(
-            get {
-              complete(getStocks())
-            },
             post {
               entity(as[Stock]) { stock =>
                 onSuccess(createStock(stock)) { performed =>
@@ -51,6 +49,11 @@ class Routes(registry: ActorRef[Registry.Command])(implicit val system: ActorSys
                 }
               }
             })
+        },
+        get {
+          parameters('country.as[String], 'location_id.as[Int])  { (country: String, location_id: Int) =>
+            complete(getStocks(country,location_id))
+          }
         },
         //#get-delete
         path(Segment) { article_id =>
