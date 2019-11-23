@@ -16,4 +16,9 @@ object Helper {
     session
   }
 
+  def createStock(stock: Stock, session) = {
+    val query = s""
+
+  }
+
 }
